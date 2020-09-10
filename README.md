@@ -20,3 +20,6 @@ on website load.
 - Users can type chat messages to the chat room.
 - A notification is sent to all users when a user joins or leaves
 the chatroom.
+
+## Try it
+chat-s.herokuapp.com
