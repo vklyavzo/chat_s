@@ -1,84 +1,98 @@
 $(function() {
-  var FADE_TIME = 150; // ms
-  var TYPING_TIMER_LENGTH = 400; // ms
+  var FADE_TIME = 150; // конствнты милисеки время плавного появления 
+  var TYPING_TIMER_LENGTH = 400; //константы  милисеки задержка сообщения
   var COLORS = [
     '#e21400', '#91580f', '#f8a700', '#f78b00',
     '#58dc00', '#287b00', '#a8f07a', '#4ae8c4',
     '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
   ];
 
-  // Initialize variables
+  // инициализация переменных
   var $window = $(window);
-  var $usernameInput = $('.usernameInput'); // Input for username
-  var $messages = $('.messages'); // Messages area
-  var $inputMessage = $('.inputMessage'); // Input message input box
+  var $usernameInput = $('.usernameInput'); // ввод имени 
+  var $messages = $('.messages'); // вобласть сообщений
+  var $inputMessage = $('.inputMessage'); // ввод сообщений 
 
-  var $loginPage = $('.login.page'); // The login page
-  var $chatPage = $('.chat.page'); // The chatroom page
+  var $loginPage = $('.login.page'); 
+  var $chatPage = $('.chat.page');
 
-  // Prompt for setting a username
+ 
   var username;
   var connected = false;
   var typing = false;
   var lastTypingTime;
   var $currentInput = $usernameInput.focus();
 
+//подключение сокет
   var socket = io();
 
+
+// 5. скока в чате юзеров
   const addParticipantsMessage = (data) => {
     var message = '';
     if (data.numUsers === 1) {
       message += "there's 1 participant";
-    } else {
+    }
+    else {
       message += "there are " + data.numUsers + " participants";
     }
+    
     log(message);
   }
 
-  // Sets the client's username
+
+
+  // 2. задаем клиенту имя пользователя
   const setUsername = () => {
     username = cleanInput($usernameInput.val().trim());
 
-    // If the username is valid
+    // если действительно
     if (username) {
       $loginPage.fadeOut();
       $chatPage.show();
       $loginPage.off('click');
       $currentInput = $inputMessage.focus();
-
-      // Tell the server your username
       socket.emit('add user', username);
     }
   }
 
-  // Sends a chat message
+
+
+  // отправка сообщений в чат
   const sendMessage = () => {
     var message = $inputMessage.val();
-    // Prevent markup from being injected into the message
+    //не допускает введение разметки в сообщения
     message = cleanInput(message);
-    // if there is a non-empty message and a socket connection
+    // если есть не пустое сообщение или сокет подключение
     if (message && connected) {
       $inputMessage.val('');
       addChatMessage({
         username: username,
         message: message
       });
-      // tell server to execute 'new message' and send along one parameter
+      // грим серверу выполнить событ новое сообщение
       socket.emit('new message', message);
     }
   }
 
-  // Log a message
+
+
+
+  //  ввод сообщений 
     const log = (message, options) => {
     var $el = $('<li>').addClass('log').text(message);
     addMessageElement($el, options);
   }
 
-  // Adds the visual chat message to the message list
+
+
+
+
+  // 5. добавляет сообщения чата в список
   const addChatMessage = (data, options) => {
-    // Don't fade the message in if there is an 'X was typing'
+    // если ктото набирает чет то сообщения не исчезнут
     var $typingMessages = getTypingMessages(data);
-    options = options || {};
+    options = options || {};//если оптионс андерфайнд то сделать его пустым объектом
     if ($typingMessages.length !== 0) {
       options.fade = false;
       $typingMessages.remove();
@@ -99,29 +113,40 @@ $(function() {
     addMessageElement($messageDiv, options);
   }
 
-  // Adds the visual chat typing message
+
+
+
+
+  //4. добавляем сообщение о наборе сообщунек
   const addChatTyping = (data) => {
     data.typing = true;
     data.message = 'is typing';
     addChatMessage(data);
   }
 
-  // Removes the visual chat typing message
+
+
+
+
+  //4. удаляем уведомление о печати сообщения
   const removeChatTyping = (data) => {
     getTypingMessages(data).fadeOut(function () {
       $(this).remove();
     });
   }
 
-  // Adds a message element to the messages and scrolls to the bottom
-  // el - The element to add as a message
-  // options.fade - If the element should fade-in (default = true)
-  // options.prepend - If the element should prepend
-  //   all other messages (default = false)
+
+
+
+
+  //8. добавим елемент сообщения к сообщениям и прокрутим вниз
+  // el - елементы для добавления в качестве сообщений
+  // options.fade - если елемент должен исчезнуть (default = true)
+  // options.prepend - если элемент должен предшествовать всем остальныем сообщениям (default = false)
   const addMessageElement = (el, options) => {
     var $el = $(el);
 
-    // Setup default options
+    // устанавливаем по умолчанию
     if (!options) {
       options = {};
     }
@@ -132,7 +157,7 @@ $(function() {
       options.prepend = false;
     }
 
-    // Apply options
+    // применяем параметры
     if (options.fade) {
       $el.hide().fadeIn(FADE_TIME);
     }
@@ -144,18 +169,25 @@ $(function() {
     $messages[0].scrollTop = $messages[0].scrollHeight;
   }
 
-  // Prevents input from having injected markup
+
+
+
+  // экранизация хтмл разметки
   const cleanInput = (input) => {
     return $('<div/>').text(input).html();
   }
 
-  // Updates the typing event
+
+
+
+  //2. обновление события тайпинг
   const updateTyping = () => {
     if (connected) {
       if (!typing) {
         typing = true;
         socket.emit('typing');
       }
+
       lastTypingTime = (new Date()).getTime();
 
       setTimeout(() => {
@@ -169,33 +201,44 @@ $(function() {
     }
   }
 
-  // Gets the 'X is typing' messages of a user
+
+
+
+  //6. присылает сообщение что такой-то чел печатает
   const getTypingMessages = (data) => {
     return $('.typing.message').filter(function (i) {
       return $(this).data('username') === data.username;
     });
   }
 
-  // Gets the color of a username through our hash function
+
+
+
+
+  //7. функция устрановки цвета юзера через хеееш
   const getUsernameColor = (username) => {
-    // Compute hash code
+    
     var hash = 7;
     for (var i = 0; i < username.length; i++) {
        hash = username.charCodeAt(i) + (hash << 5) - hash;
     }
-    // Calculate color
+    // калькулятор цвета юзера
     var index = Math.abs(hash % COLORS.length);
     return COLORS[index];
   }
 
-  // Keyboard events
+
+
+
+
+  // Keyboard события
 
   $window.keydown(event => {
-    // Auto-focus the current input when a key is typed
+    //автофокус
     if (!(event.ctrlKey || event.metaKey || event.altKey)) {
       $currentInput.focus();
     }
-    // When the client hits ENTER on their keyboard
+    // если нажунькал ENTER
     if (event.which === 13) {
       if (username) {
         sendMessage();
@@ -207,75 +250,80 @@ $(function() {
     }
   });
 
-  $inputMessage.on('input', () => {
+
+//1. начинаем печатать
+  $inputMessage.on('input', () => { //если печатаем вып обнов
     updateTyping();
   });
 
-  // Click events
 
-  // Focus input when clicking anywhere on login page
+
+
+  // Click события
+
+ 
   $loginPage.click(() => {
     $currentInput.focus();
   });
 
-  // Focus input when clicking on the message input's border
   $inputMessage.click(() => {
     $inputMessage.focus();
   });
 
-  // Socket events
 
-  // Whenever the server emits 'login', log the login message
+  // Socket события
+
+//4. пишем привет пользователю
   socket.on('login', (data) => {
     connected = true;
-    // Display the welcome message
-    var message = "Welcome to Socket.IO Chat – ";
+  
+    var message = "Welcome to Chat – ";
     log(message, {
       prepend: true
     });
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'new message', update the chat body
+
   socket.on('new message', (data) => {
     addChatMessage(data);
   });
 
-  // Whenever the server emits 'user joined', log it in the chat body
+// 4. оповещаем всех
   socket.on('user joined', (data) => {
     log(data.username + ' joined');
     addParticipantsMessage(data);
   });
 
-  // Whenever the server emits 'user left', log it in the chat body
+
   socket.on('user left', (data) => {
     log(data.username + ' left');
     addParticipantsMessage(data);
     removeChatTyping(data);
   });
 
-  // Whenever the server emits 'typing', show the typing message
+// 3.
   socket.on('typing', (data) => {
     addChatTyping(data);
   });
 
-  // Whenever the server emits 'stop typing', kill the typing message
+//3. 
   socket.on('stop typing', (data) => {
     removeChatTyping(data);
   });
 
-  socket.on('disconnect', () => {
+  socket.on('disconnect', () => {//встроенное событие
     log('you have been disconnected');
   });
 
-  socket.on('reconnect', () => {
+  socket.on('reconnect', () => {//встроенное событие 
     log('you have been reconnected');
     if (username) {
       socket.emit('add user', username);
     }
   });
 
-  socket.on('reconnect_error', () => {
+  socket.on('reconnect_error', () => {//встроенное событие 
     log('attempt to reconnect has failed');
   });
 

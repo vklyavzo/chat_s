@@ -1,4 +1,4 @@
-/* Fix user-agent */
+
 
 * {
   box-sizing: border-box;
@@ -31,7 +31,7 @@ ul {
   word-wrap: break-word;
 }
 
-/* Pages */
+/* странички */
 
 .pages {
   height: 100%;
@@ -46,7 +46,7 @@ ul {
   width: 100%;
 }
 
-/* Login Page */
+/* страничка логина */
 
 .login.page {
   background-color: #000;
@@ -86,13 +86,13 @@ ul {
   font-weight: 100;
 }
 
-/* Chat page */
+/* страничка чата */
 
 .chat.page {
   display: none;
 }
 
-/* Font */
+/* шрифты*/
 
 .messages {
   font-size: 150%;
@@ -109,7 +109,7 @@ ul {
   text-align: center;
 }
 
-/* Messages */
+/* сообщения */
 
 .chatArea {
   height: 100%;
@@ -134,7 +134,7 @@ ul {
   text-align: right;
 }
 
-/* Input */
+/* ввод */
 
 .inputMessage {
   border: 10px solid #000;
