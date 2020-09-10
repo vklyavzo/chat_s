@@ -22,4 +22,5 @@ on website load.
 the chatroom.
 
 ## Try it
-chat-s.herokuapp.com
+
+http://chat-s.herokuapp.com/
